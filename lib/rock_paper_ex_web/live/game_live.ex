@@ -3,7 +3,7 @@ defmodule RockPaperExWeb.GameLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, :state, :waiting)}
   end
 
   @impl true
@@ -12,18 +12,25 @@ defmodule RockPaperExWeb.GameLive do
     <div class="flex flex-col items-center justify-center h-screen">
       <div class="flex flex-col items-center justify-center">
         <div class="flex flex-col items-center justify-center">
-          <h1 class="text-3xl font-bold text-center">Rock Paper Scissors</h1>
+          <h1 class="text-3xl font-bold text-center">🪨 📰 ✂️</h1>
           <div class="flex flex-col items-center justify-center mt-4">
             <button
-              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+              class="bg-gray-100 hover:bg-gray-200 text-white font-bold py-2 px-4 rounded-full"
               phx-click="play"
             >
-              Play
+              <div class="hover:animate-throw -rotate-90">
+                <span>✊🏾</span>
+              </div>
             </button>
+            <h1><%= @state %></h1>
           </div>
         </div>
       </div>
     </div>
     """
+  end
+
+  def handle_event("play", _params, socket) do
+    {:noreply, assign(socket, :state, :playing)}
   end
 end
