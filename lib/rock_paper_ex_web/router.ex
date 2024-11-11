@@ -8,6 +8,7 @@ defmodule RockPaperExWeb.Router do
     plug :put_root_layout, html: {RockPaperExWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :assign_session_uuid
   end
 
   pipeline :api do
@@ -16,7 +17,8 @@ defmodule RockPaperExWeb.Router do
 
   scope "/", RockPaperExWeb do
     pipe_through :browser
-    live "/", GameLive, :index
+    live "/", NewGameLive
+    live "/game/:game", GameLive
   end
 
   # Other scopes may use custom stacks.
@@ -38,6 +40,16 @@ defmodule RockPaperExWeb.Router do
 
       live_dashboard "/dashboard", metrics: RockPaperExWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+
+  defp assign_session_uuid(conn, _opts) do
+    case get_session(conn, :session_uuid) do
+      nil ->
+        put_session(conn, :session_uuid, UUID.uuid4())
+
+      _uuid ->
+        conn
     end
   end
 end
