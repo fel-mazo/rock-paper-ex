@@ -14,8 +14,7 @@ defmodule RockPaperExWeb.GameLive do
     end
 
     # else spectate ?
-
-    IO.inspect(Repo.get_players(id))
+    game = Repo.get(id)
 
     {
       :ok,
@@ -23,8 +22,8 @@ defmodule RockPaperExWeb.GameLive do
       |> assign_new(:session_uuid, fn -> session_uuid end)
       |> assign(:game, id)
       |> assign(:players, Repo.get_players(id))
-      |> assign_new(:score, fn -> %{} end)
-      |> assign_new(:turn, fn -> %{} end)
+      |> assign(:score, game.score)
+      |> assign(:turn, game.turn)
       |> assign(:my_turn, nil)
     }
   end
@@ -104,11 +103,18 @@ defmodule RockPaperExWeb.GameLive do
       {:player_turn, socket.assigns.session_uuid, move}
     )
 
+    turn = Repo.get_turn(socket.assigns.game)
+
     {:noreply,
      assign(socket,
        score: Repo.get_score(socket.assigns.game),
-       turn: Repo.get_turn(socket.assigns.game),
-       my_turn: move
+       turn: turn,
+       my_turn:
+         if turn == %{} do
+           nil
+         else
+           move
+         end
      )}
   end
 
@@ -122,13 +128,14 @@ defmodule RockPaperExWeb.GameLive do
     {:noreply, assign(socket, players: Repo.get_players(socket.assigns.game))}
   end
 
-  def handle_info({:player_turn, player, move}, socket) do
+  def handle_info({:player_turn, _player, _move}, socket) do
+    turn = Repo.get_turn(socket.assigns.game)
+
     {:noreply,
      assign(socket,
        score: Repo.get_score(socket.assigns.game),
-       turn: Repo.get_turn(socket.assigns.game),
        my_turn:
-         if player != socket.assigns.session_uuid and socket.assigns.my_turn do
+         if turn == %{} do
            nil
          else
            socket.assigns.my_turn
