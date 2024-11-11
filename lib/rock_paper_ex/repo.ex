@@ -14,12 +14,12 @@ defmodule RockPaperEx.Repo do
   end
 
   defmodule Game do
-    defstruct [:players, :outcome]
+    defstruct [:players, :score, :turn]
   end
 
   def update_game(id, f) do
     Agent.update(__MODULE__, fn state ->
-      Map.update(state, id, %Game{players: MapSet.new()}, f)
+      Map.update(state, id, %Game{players: MapSet.new(), score: %{}, turn: %{}}, f)
     end)
   end
 
@@ -28,7 +28,7 @@ defmodule RockPaperEx.Repo do
 
     :ok =
       update_game(id, fn game ->
-        %Game{game | players: MapSet.put(game.players, first_player)}
+        %Game{game | players: MapSet.put(game.players, first_player), turn: %{}}
       end)
 
     id
@@ -64,6 +64,26 @@ defmodule RockPaperEx.Repo do
     end
   end
 
+  def get_score(id) do
+    case get(id) do
+      nil ->
+        %{}
+
+      game ->
+        game.score
+    end
+  end
+
+  def get_turn(id) do
+    case get(id) do
+      nil ->
+        %{}
+
+      game ->
+        game.turn
+    end
+  end
+
   def number_of_players(id) do
     case get(id) do
       nil ->
@@ -72,5 +92,39 @@ defmodule RockPaperEx.Repo do
       game ->
         MapSet.size(game.players)
     end
+  end
+
+  def compare_moves(a, b) do
+    case {a, b} do
+      {"rock", "scissors"} -> 1
+      {"scissors", "paper"} -> 1
+      {"paper", "rock"} -> 1
+      _ -> 0
+    end
+  end
+
+  def make_move(id, player, move) do
+    update_game(id, fn game ->
+      turn = Map.put(game.turn, player, move)
+
+      if map_size(turn) == 2 do
+        other_player = Enum.find(Map.keys(turn), &(&1 != player))
+        other_move = Map.get(turn, other_player)
+
+        player_turn_score = compare_moves(move, other_move)
+        other_turn_score = compare_moves(other_move, move)
+
+        %Game{
+          game
+          | turn: %{},
+            score:
+              game.score
+              |> Map.update(player, player_turn_score, &(&1 + player_turn_score))
+              |> Map.update(other_player, other_turn_score, &(&1 + other_turn_score))
+        }
+      else
+        %Game{game | turn: turn}
+      end
+    end)
   end
 end
