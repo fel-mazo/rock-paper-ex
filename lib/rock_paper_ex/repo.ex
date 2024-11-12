@@ -28,7 +28,12 @@ defmodule RockPaperEx.Repo do
 
     :ok =
       update_game(id, fn game ->
-        %Game{game | players: MapSet.put(game.players, first_player), turn: %{}}
+        %Game{
+          game
+          | players: MapSet.put(game.players, first_player),
+            score: %{first_player => 0},
+            turn: %{}
+        }
       end)
 
     id
@@ -39,7 +44,7 @@ defmodule RockPaperEx.Repo do
 
     if MapSet.size(players) < 2 do
       update_game(id, fn game ->
-        %Game{game | players: MapSet.put(players, player)}
+        %Game{game | players: MapSet.put(players, player), score: Map.put(game.score, player, 0)}
       end)
 
       :ok

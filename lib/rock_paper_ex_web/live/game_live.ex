@@ -33,12 +33,7 @@ defmodule RockPaperExWeb.GameLive do
     ~H"""
     <div class="flex flex-col items-center justify-center h-screen">
       <div class="flex flex-col items-center justify-center">
-        <div>
-          <%= for {player, turn} <- Map.to_list(@turn) do %>
-            <h1>Player: <%= player %> Turn: <%= turn %></h1>
-          <% end %>
-        </div>
-        <div class="flex flex-col items-center justify-center">
+        <div class="flex flex-col items-center justify-center gap-5">
           <div class="flex items-center justify-center gap-2">
             <button
               phx-click="make_move"
@@ -74,17 +69,20 @@ defmodule RockPaperExWeb.GameLive do
               ✂️
             </button>
           </div>
-          <div class="flex flex-col items-center justify-center mt-4">
-            <h1>Session ID: <%= @session_uuid %></h1>
-            <div class="flex flex-col items-center justify-center mt-4">
-              <%= for player <- @players do %>
-                <h1>Player: <%= player %></h1>
-              <% end %>
-            </div>
-          </div>
-          <div class="flex flex-col items-center justify-center mt-4">
-            <%= for {player, turn} <- Map.to_list(@score) do %>
-              <h1>Player: <%= player %> Score: <%= turn %></h1>
+
+          <div class="flex flex-col items-center justify-center mt-4 text-center">
+            <%= if length(@players) < 2 do %>
+              <h1>Waiting for other player to join...</h1>
+            <% end %>
+            <%= if length(@players) == 2 do %>
+              <div class="flex flex-row items-center justify-center gap-10">
+                <div>
+                  <h1>Your score: <%= @score[@session_uuid] %></h1>
+                </div>
+                <div>
+                  <h1>Opponent score: <%= @score[Enum.find(@players, &(&1 != @session_uuid))] %></h1>
+                </div>
+              </div>
             <% end %>
           </div>
         </div>
