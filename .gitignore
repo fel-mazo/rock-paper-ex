@@ -35,3 +35,6 @@ rock_paper_ex-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Ignore env
+.env
+
